@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Structure Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Data Structure Visualizer</h1>
+            <p class="subtitle">Interactive visualization of core data structures and algorithms</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="heap">Binary Heap</button>
+            <button class="tab-btn" data-tab="avl">AVL Tree</button>
+            <button class="tab-btn" data-tab="graph">Graph</button>
+            <button class="tab-btn" data-tab="hashtable">Hash Table</button>
+        </nav>
+
+        <!-- Binary Heap Section -->
+        <div class="tab-content active" id="heap">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Value:</label>
+                    <input type="number" id="heap-value" placeholder="Enter value">
+                    <button id="heap-insert">Insert</button>
+                    <button id="heap-delete">Delete Min</button>
+                    <button id="heap-clear">Clear</button>
+                </div>
+                <div class="control-group">
+                    <label>Heap Type:</label>
+                    <select id="heap-type">
+                        <option value="min">Min Heap</option>
+                        <option value="max">Max Heap</option>
+                    </select>
+                </div>
+            </div>
+            <div class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="heap-canvas"></canvas>
+                </div>
+                <div class="array-panel">
+                    <h3>Array Representation</h3>
+                    <div id="heap-array"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AVL Tree Section -->
+        <div class="tab-content" id="avl">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Value:</label>
+                    <input type="number" id="avl-value" placeholder="Enter value">
+                    <button id="avl-insert">Insert</button>
+                    <button id="avl-delete">Delete</button>
+                    <button id="avl-clear">Clear</button>
+                </div>
+            </div>
+            <div class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="avl-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Section -->
+        <div class="tab-content" id="graph">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Node:</label>
+                    <input type="text" id="graph-node" placeholder="Node ID (A-Z)">
+                    <button id="graph-add-node">Add Node</button>
+                    <button id="graph-remove-node">Remove Node</button>
+                </div>
+                <div class="control-group">
+                    <label>Edge:</label>
+                    <input type="text" id="graph-from" placeholder="From">
+                    <input type="text" id="graph-to" placeholder="To">
+                    <input type="number" id="graph-weight" placeholder="Weight" value="1">
+                    <button id="graph-add-edge">Add Edge</button>
+                    <button id="graph-remove-edge">Remove Edge</button>
+                </div>
+                <div class="control-group">
+                    <label>Algorithm:</label>
+                    <select id="graph-algorithm">
+                        <option value="bfs">BFS</option>
+                        <option value="dfs">DFS</option>
+                        <option value="dijkstra">Dijkstra</option>
+                        <option value="prim">Prim's MST</option>
+                    </select>
+                    <input type="text" id="graph-start" placeholder="Start Node">
+                    <button id="graph-run">Run Algorithm</button>
+                    <button id="graph-clear">Clear</button>
+                </div>
+            </div>
+            <div class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="graph-canvas"></canvas>
+                </div>
+                <div class="algorithm-panel">
+                    <h3>Algorithm State</h3>
+                    <div id="graph-queue-stack"></div>
+                    <div id="graph-distances"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hash Table Section -->
+        <div class="tab-content" id="hashtable">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Key:</label>
+                    <input type="text" id="ht-key" placeholder="Enter key">
+                    <label>Value:</label>
+                    <input type="text" id="ht-value" placeholder="Enter value">
+                    <button id="ht-insert">Insert</button>
+                    <button id="ht-search">Search</button>
+                    <button id="ht-delete">Delete</button>
+                    <button id="ht-clear">Clear</button>
+                </div>
+                <div class="control-group">
+                    <label>Collision Handling:</label>
+                    <select id="ht-type">
+                        <option value="chaining">Chaining</option>
+                        <option value="linear">Linear Probing</option>
+                    </select>
+                    <label>Table Size:</label>
+                    <input type="number" id="ht-size" value="11" min="5" max="31">
+                </div>
+            </div>
+            <div class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="ht-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Panel -->
+        <div class="log-panel">
+            <h3>Operation Log</h3>
+            <div id="log-content"></div>
+            <button id="log-clear">Clear Log</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

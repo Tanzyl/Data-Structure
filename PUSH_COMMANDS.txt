@@ -1,0 +1,6 @@
+After creating the repository on GitHub, run this single command:
+
+git push -u origin main
+
+That's it! The remote is already configured.
+

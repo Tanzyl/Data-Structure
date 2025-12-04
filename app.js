@@ -188,31 +188,38 @@ class BinaryHeap {
                 if (!ptr || ptr === 0) return this.heap;
                 
                 // Read from WebAssembly memory
-                const arr = [];
-                // Try different memory access methods
+                // Try HEAP32 first (standard Emscripten way)
+                if (typeof HEAP32 !== 'undefined' && HEAP32) {
+                    const arr = [];
+                    for (let i = 0; i < size; i++) {
+                        arr.push(HEAP32[(ptr >> 2) + i]);
+                    }
+                    if (Module._free) Module._free(ptr);
+                    return arr;
+                }
+                
+                // Fallback: use wasmMemory directly
+                const wasmMemory = Module.wasmMemory || (typeof wasmMemory !== 'undefined' ? wasmMemory : null);
+                if (wasmMemory) {
+                    const view = new Int32Array(wasmMemory.buffer, ptr, size);
+                    const arr = Array.from(view);
+                    if (Module._free) Module._free(ptr);
+                    return arr;
+                }
+                
+                // Last resort: try Module.HEAP32 (might be on Module object)
                 if (Module.HEAP32) {
-                    // Standard method
+                    const arr = [];
                     for (let i = 0; i < size; i++) {
                         arr.push(Module.HEAP32[(ptr >> 2) + i]);
                     }
-                } else if (Module.HEAPU32) {
-                    // Alternative
-                    for (let i = 0; i < size; i++) {
-                        arr.push(Module.HEAPU32[(ptr >> 2) + i]);
-                    }
-                } else {
-                    // Direct memory access
-                    const view = new Int32Array(Module.HEAP8.buffer, ptr, size);
-                    for (let i = 0; i < size; i++) {
-                        arr.push(view[i]);
-                    }
+                    if (Module._free) Module._free(ptr);
+                    return arr;
                 }
                 
-                // Free the allocated memory
-                if (Module._free) {
-                    Module._free(ptr);
-                }
-                return arr;
+                // If all else fails, free and return JS heap
+                if (Module._free) Module._free(ptr);
+                return this.heap;
             } catch (e) {
                 console.error('WASM getArray error, using JS fallback:', e);
                 return this.heap;

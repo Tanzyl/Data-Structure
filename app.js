@@ -202,10 +202,29 @@ class BinaryHeap {
     }
 }
 
-let heap = new BinaryHeap('min');
+let heap = null;
+
+// Initialize heap after WebAssembly is ready
+function initHeap() {
+    if (!heap) {
+        heap = new BinaryHeap('min');
+        drawHeap();
+    }
+}
+
+// Wait for WebAssembly, then initialize
+waitForWasm(() => {
+    initHeap();
+});
+// Fallback: initialize after delay
+setTimeout(() => {
+    if (!heap) initHeap();
+}, 1000);
 
 function drawHeap() {
+    if (!heap) return;
     const canvas = document.getElementById('heap-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -301,6 +320,7 @@ function drawHeap() {
 
 // Heap event listeners
 document.getElementById('heap-insert').addEventListener('click', () => {
+    if (!heap) initHeap();
     const value = parseInt(document.getElementById('heap-value').value);
     if (isNaN(value)) {
         log('Please enter a valid number', 'error');
@@ -312,16 +332,19 @@ document.getElementById('heap-insert').addEventListener('click', () => {
 });
 
 document.getElementById('heap-delete').addEventListener('click', () => {
+    if (!heap) initHeap();
     heap.delete();
     drawHeap();
 });
 
 document.getElementById('heap-clear').addEventListener('click', () => {
+    if (!heap) initHeap();
     heap.clear();
     drawHeap();
 });
 
 document.getElementById('heap-type').addEventListener('change', (e) => {
+    if (!heap) initHeap();
     const oldHeap = heap.getHeapArray();
     heap = new BinaryHeap(e.target.value);
     // Wait a bit for WASM to initialize, then insert values

@@ -127,7 +127,10 @@ data-structure-visualizer/
 ### Technologies Used
 - **HTML5**: Structure and semantic markup
 - **CSS3**: Styling, animations, and responsive design
-- **JavaScript (ES6+)**: All algorithms and visualizations
+- **JavaScript (ES6+)**: UI, visualizations, and WebAssembly integration
+- **C++**: Core data structure implementations
+- **WebAssembly (WASM)**: Compiled C++ code for high performance
+- **Emscripten**: C++ to WebAssembly compiler
 - **Canvas API**: Drawing and rendering visualizations
 
 ### Browser Compatibility
@@ -136,8 +139,22 @@ data-structure-visualizer/
 - Safari
 - Opera
 
-### No Dependencies
-This project uses zero external libraries or frameworks. Everything is built from scratch using vanilla JavaScript.
+### WebAssembly Integration
+This project uses C++ implementations compiled to WebAssembly for optimal performance:
+- **C++ Source Files**: Located in `cpp/` directory
+- **Compiled Files**: `ds_visualizer.js` and `ds_visualizer.wasm`
+- **Compilation**: Uses Emscripten SDK (emcc compiler)
+- **Fallback**: JavaScript implementations available if WebAssembly fails to load
+
+### Compilation Instructions
+To recompile the C++ code:
+```bash
+cd cpp
+emcc heap.cpp avl_tree.cpp graph.cpp hash_table.cpp -o ../ds_visualizer.js \
+  -s EXPORTED_FUNCTIONS="['_createHeap','_heapInsert','_heapDelete',...]" \
+  -s EXPORTED_RUNTIME_METHODS="['cwrap','UTF8ToString']" \
+  -O3 -s ALLOW_MEMORY_GROWTH=1
+```
 
 ## Features in Detail
 

@@ -147,6 +147,16 @@
         </div>
     </div>
 
+    <script>
+        // Initialize WebAssembly Module
+        var Module = {
+            onRuntimeInitialized: function() {
+                console.log('WebAssembly module ready');
+                wasmReady = true;
+            }
+        };
+    </script>
+    <script src="ds_visualizer.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

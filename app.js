@@ -185,12 +185,33 @@ class BinaryHeap {
                 const size = Module._heapGetSize();
                 if (size === 0) return [];
                 const ptr = Module._heapGetArray();
-                if (!ptr) return this.heap;
+                if (!ptr || ptr === 0) return this.heap;
+                
+                // Read from WebAssembly memory
                 const arr = [];
-                for (let i = 0; i < size; i++) {
-                    arr.push(Module.HEAP32[(ptr >> 2) + i]);
+                // Try different memory access methods
+                if (Module.HEAP32) {
+                    // Standard method
+                    for (let i = 0; i < size; i++) {
+                        arr.push(Module.HEAP32[(ptr >> 2) + i]);
+                    }
+                } else if (Module.HEAPU32) {
+                    // Alternative
+                    for (let i = 0; i < size; i++) {
+                        arr.push(Module.HEAPU32[(ptr >> 2) + i]);
+                    }
+                } else {
+                    // Direct memory access
+                    const view = new Int32Array(Module.HEAP8.buffer, ptr, size);
+                    for (let i = 0; i < size; i++) {
+                        arr.push(view[i]);
+                    }
                 }
-                Module._free(ptr);
+                
+                // Free the allocated memory
+                if (Module._free) {
+                    Module._free(ptr);
+                }
                 return arr;
             } catch (e) {
                 console.error('WASM getArray error, using JS fallback:', e);

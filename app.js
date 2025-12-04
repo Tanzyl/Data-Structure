@@ -61,55 +61,72 @@ setTimeout(resizeCanvases, 100);
 class BinaryHeap {
     constructor(type = 'min') {
         this.type = type;
-        this.useWasm = false;
         this.heap = []; // Always keep JS fallback
+        this.wasmInitialized = false;
         
-        // Try to use WebAssembly if available
-        waitForWasm(() => {
-            if (typeof Module !== 'undefined' && Module && Module._createHeap) {
-                this.useWasm = true;
-                Module._createHeap(type === 'min' ? 1 : 0);
+        // Initialize WebAssembly if available
+        this.initWasm();
+    }
+
+    initWasm() {
+        if (typeof Module !== 'undefined' && Module && Module._createHeap) {
+            try {
+                Module._createHeap(this.type === 'min' ? 1 : 0);
+                this.wasmInitialized = true;
                 log('Using WebAssembly for Binary Heap', 'info');
+            } catch (e) {
+                console.error('WASM init error:', e);
             }
-        });
+        }
+    }
+
+    canUseWasm() {
+        return this.wasmInitialized && typeof Module !== 'undefined' && Module && Module._heapInsert;
     }
 
     insert(value) {
-        if (this.useWasm && Module && Module._heapInsert) {
-            Module._heapInsert(value);
-            log(`Inserted ${value} into ${this.type} heap (WASM)`, 'success');
-        } else {
-            // JavaScript fallback
-            this.heap.push(value);
-            this.heapifyUp(this.heap.length - 1);
-            log(`Inserted ${value} into ${this.type} heap`, 'success');
+        if (this.canUseWasm()) {
+            try {
+                Module._heapInsert(value);
+                log(`Inserted ${value} into ${this.type} heap (WASM)`, 'success');
+                return;
+            } catch (e) {
+                console.error('WASM insert error:', e);
+            }
         }
+        // JavaScript fallback
+        this.heap.push(value);
+        this.heapifyUp(this.heap.length - 1);
+        log(`Inserted ${value} into ${this.type} heap`, 'success');
     }
 
     delete() {
-        if (this.useWasm && Module && Module._heapDelete) {
-            const result = Module._heapDelete();
-            if (result === -1) {
-                log('Heap is empty', 'error');
-                return null;
+        if (this.canUseWasm()) {
+            try {
+                const result = Module._heapDelete();
+                if (result === -1) {
+                    log('Heap is empty', 'error');
+                    return null;
+                }
+                log(`Deleted ${result} from ${this.type} heap (WASM)`, 'success');
+                return result;
+            } catch (e) {
+                console.error('WASM delete error:', e);
             }
-            log(`Deleted ${result} from ${this.type} heap (WASM)`, 'success');
-            return result;
-        } else {
-            // JavaScript fallback
-            if (this.heap.length === 0) {
-                log('Heap is empty', 'error');
-                return null;
-            }
-            const root = this.heap[0];
-            this.heap[0] = this.heap[this.heap.length - 1];
-            this.heap.pop();
-            if (this.heap.length > 0) {
-                this.heapifyDown(0);
-            }
-            log(`Deleted ${root} from ${this.type} heap`, 'success');
-            return root;
         }
+        // JavaScript fallback
+        if (this.heap.length === 0) {
+            log('Heap is empty', 'error');
+            return null;
+        }
+        const root = this.heap[0];
+        this.heap[0] = this.heap[this.heap.length - 1];
+        this.heap.pop();
+        if (this.heap.length > 0) {
+            this.heapifyDown(0);
+        }
+        log(`Deleted ${root} from ${this.type} heap`, 'success');
+        return root;
     }
 
     heapifyUp(index) {
@@ -151,20 +168,24 @@ class BinaryHeap {
     }
 
     clear() {
-        if (this.useWasm && Module && Module._heapClear) {
-            Module._heapClear();
+        if (this.canUseWasm() && Module._heapClear) {
+            try {
+                Module._heapClear();
+            } catch (e) {
+                console.error('WASM clear error:', e);
+            }
         }
         this.heap = [];
         log('Heap cleared', 'info');
     }
 
     getHeapArray() {
-        if (this.useWasm && Module && Module._heapGetSize && Module._heapGetArray) {
+        if (this.canUseWasm() && Module._heapGetSize && Module._heapGetArray) {
             try {
                 const size = Module._heapGetSize();
                 if (size === 0) return [];
                 const ptr = Module._heapGetArray();
-                if (!ptr) return [];
+                if (!ptr) return this.heap;
                 const arr = [];
                 for (let i = 0; i < size; i++) {
                     arr.push(Module.HEAP32[(ptr >> 2) + i]);
@@ -172,7 +193,7 @@ class BinaryHeap {
                 Module._free(ptr);
                 return arr;
             } catch (e) {
-                console.error('WASM error, using JS fallback:', e);
+                console.error('WASM getArray error, using JS fallback:', e);
                 return this.heap;
             }
         } else {
@@ -303,9 +324,12 @@ document.getElementById('heap-clear').addEventListener('click', () => {
 document.getElementById('heap-type').addEventListener('change', (e) => {
     const oldHeap = heap.getHeapArray();
     heap = new BinaryHeap(e.target.value);
-    oldHeap.forEach(val => heap.insert(val));
-    drawHeap();
-    log(`Switched to ${e.target.value} heap`, 'info');
+    // Wait a bit for WASM to initialize, then insert values
+    setTimeout(() => {
+        oldHeap.forEach(val => heap.insert(val));
+        drawHeap();
+        log(`Switched to ${e.target.value} heap`, 'info');
+    }, 100);
 });
 
 // ==================== AVL Tree ====================
